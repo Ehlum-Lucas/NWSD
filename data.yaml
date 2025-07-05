@@ -1,0 +1,18 @@
+# Water Surface Detection Dataset Configuration
+# Paths to train and validation datasets
+train: /home/lucasiglesia/Epitech/EIP/Neptune-Water-Surface-Detection-1/train/images  # path to training images
+val: /home/lucasiglesia/Epitech/EIP/Neptune-Water-Surface-Detection-1/valid/images    # path to validation images
+test: /home/lucasiglesia/Epitech/EIP/Neptune-Water-Surface-Detection-1/test/images    # path to test images (optional)
+
+# Class names
+names:
+  0: water
+
+# Number of classes
+nc: 1
+
+# Dataset info
+dataset_name: "Neptune Water Surface Detection"
+description: "Binary segmentation dataset for water surface detection in beach images"
+version: "1.0"
+license: "MIT"
