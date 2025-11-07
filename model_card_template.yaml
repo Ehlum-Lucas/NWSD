@@ -1,0 +1,87 @@
+# model_card_template.yaml
+
+# =====================================================
+# 🌊 Water Surface Segmentation on Beach Images
+# =====================================================
+# Hugging Face model metadata file
+# =====================================================
+
+language:
+  - en
+
+license: gpl-3.0
+
+library_name: pytorch
+
+tags:
+  - segmentation
+  - computer-vision
+  - yolo
+  - beach
+  - water
+  - open-source
+
+task_categories:
+  - image-segmentation
+
+model-index:
+  - name: Water Surface Segmentation (NWSD)
+    results:
+      - task:
+          type: image-segmentation
+          name: Image Segmentation
+        metrics:
+          - type: mAP50
+            name: Mean Average Precision @ 0.5
+            value: 0.85
+          - type: inference_speed
+            name: Inference Speed (CPU)
+            value: 50
+            unit: "ms/image"
+
+model_details:
+  description: >
+    A YOLOv11n-based segmentation model fine-tuned for detecting and segmenting
+    water surfaces in coastal or beach images. Trained on a custom-labeled dataset
+    containing a single class: "water".
+  developed_by: Lucas Iglesia
+  repo: https://huggingface.co/Lucas-Iglesia/NWSD
+  license: GPL-3.0
+  framework: PyTorch
+  model_size: 6.07 MB
+  input_size: "640x640"
+  num_classes: 1
+  class_labels: ["water"]
+  release_date: "2025-11-07"
+
+inference:
+  parameters:
+    device: "cpu or cuda"
+    conf_threshold: 0.5
+  example_inputs:
+    - beachTest.jpg
+  example_outputs:
+    - binary_mask.png
+    - overlay.png
+  usage_snippet: |
+    from huggingface_hub import hf_hub_download
+    import torch
+    model_path = hf_hub_download(repo_id="Ehlum-Lucas/NWSD", filename="nwsd-v2.pt")
+    model = torch.load(model_path, map_location="cpu")
+    model.eval()
+
+recommended_use:
+  - Coastal monitoring
+  - Beach safety and drowning prevention
+  - Environmental water coverage analysis
+
+limitations:
+  - Optimized for daylight beach scenes
+  - May underperform in low-visibility or night images
+
+citation:
+  - type: misc
+    title: "Water Surface Segmentation on Beach Images"
+    author: "Lucas Iglesia"
+    year: 2025
+    url: "https://huggingface.co/Ehlum-Lucas/NWSD"

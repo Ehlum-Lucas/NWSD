@@ -1,86 +1,129 @@
+---
+language: "en"
+license: "gpl-3.0"
+tags:
+  - segmentation
+  - computer-vision
+  - yolo
+  - beach
+  - water
+  - open-source
+task_categories:
+  - image-segmentation
+---
+
 # 🌊 Water Surface Segmentation on Beach Images
 
-This project provides an open-source solution for **segmenting water surfaces in beach images** using deep learning. The model is a fine-tuned version of **YOLOv11n**, adapted for binary segmentation using a custom-labeled dataset with a single class: **"water"**.
+## Model Overview
+This model performs **semantic segmentation of water surfaces** in beach or coastal images.
+It’s a fine-tuned version of **YOLOv11n**, adapted for **binary segmentation** with a single class: **`water`**.
 
-## 📦 Features
-
-- ⚡ **Fast inference**: Optimized for real-time detection
-- 🧠 **YOLOv11n backbone**: Lightweight, efficient, and accurate
-- 🖼 **Multiple outputs**: Binary masks, overlays, and water coverage stats
-- 🔧 **Flexible deployment**: Works on CPU, GPU, and exportable to ONNX
-- 📊 **Comprehensive evaluation**: Built-in performance metrics and visual diagnostics
-- 🐍 **Easy integration**: Simple Python API (`nwsd_api.py`) for custom use cases
+Built for lightweight, real-time deployment, the model achieves strong accuracy while remaining small and efficient.
 
 ---
 
-## 📈 Model Performance
+## 🧠 Model Details
+- **Architecture**: YOLOv11n segmentation head (binary)
+- **Base framework**: PyTorch / Ultralytics YOLOv11
+- **Input size**: 640×640 RGB images  
+- **Output**: Binary segmentation mask (1 class — `water`)
+- **Model file**: `nwsd-v2.pt` (≈6 MB)
 
-- **mAP50**: >0.85 on validation set
-- **Inference speed**: ~50ms per image on CPU
-- **Memory usage**: <2GB on GPU
-- **Model file**: `nwsd-v2.pt` (6.07 MB)
+---
+
+## 🚀 Key Features
+- ⚡ **Real-time inference** on CPU/GPU  
+- 🖼 **Outputs**: Binary masks, overlays, and coverage statistics  
+- 📊 **Evaluation tools** included for metrics & visualization  
+- 🐍 **Easy Python integration** via a simple API (`nwsd_api.py`)
+
+---
+
+## 📈 Performance
+| Metric | Value | Notes |
+|:--|:--|:--|
+| **mAP50** | > 0.85 | On validation set |
+| **Inference speed** | ~50 ms/image | On CPU |
+| **GPU memory** | < 2 GB | For 640×640 input |
 
 ---
 
 ## 🗂 Dataset
+- **Type**: Binary segmentation  
+- **Classes**: `water`  
+- **Annotations**: PNG masks  
+- **Source**: Custom-labeled beach dataset  
 
-- **Type**: Binary segmentation (1 class: `water`)
-- **Annotation format**: PNG masks
-- **Source**: Custom-labeled beach images
-
-🔗 [Download Dataset on Roboflow](https://universe.roboflow.com/neptune-uxxqf/neptune-water-surface-detection)
+🔗 [Dataset on Roboflow](https://universe.roboflow.com/neptune-uxxqf/neptune-water-surface-detection)
 
 ---
 
-## ⚙️ Installation
+## 🧩 Intended Uses
+**Use cases:**
+- Coastal or maritime monitoring  
+- Beach safety & drowning prevention systems  
+- Environmental analysis (e.g., water coverage estimation)  
 
-```bash
-git clone https://github.com/Ehlum-Lucas/NWSD.git
-cd NWSD
-pip install -r requirements.txt
+**Limitations:**
+- Designed for daylight, clear beach imagery  
+- May underperform in low-visibility or night-time scenes
+
+---
+
+## 🧪 How to Use
+
+### Load model from Hub
+```python
+from huggingface_hub import hf_hub_download
+import torch
+
+model_path = hf_hub_download(repo_id="Ehlum-Lucas/NWSD", filename="nwsd-v2.pt")
+model = torch.load(model_path, map_location="cpu")
+model.eval()
 ```
 
-## Quick Start
+### Inference example
+```python
+from PIL import Image
+import torch
+from torchvision import transforms
 
-### Inference
+img = Image.open("beachTest.jpg").convert("RGB")
+input_tensor = transforms.ToTensor()(img).unsqueeze(0)
 
-```bash
-python3 predict.py --image beachTest.jpg --weights yolo11n-seg.pt
+with torch.no_grad():
+    pred = model(input_tensor)
 ```
 
-**Optionnal flags:**
-- `--save-mask`: Save binary mask as `.png`
-- `--save-overlay`: Save overlay image
-- `--save-results`: Save final visualization plot
-- `--conf 0.5`: Set confidence threshold (default: 0.5)
-- `--device cuda`: Use GPU for inference (default: CPU)
-
-### Training
-
+### ⚙️ Training
+You can fine-tune or retrain the model using YOLOv11 tools:
 ```bash
-python3 train.py --data data.yaml --weights yolo11n-seg.pt --img 640 --batch 16 --epochs 50
+python train.py --data data.yaml --weights <path_to_weights> --img 640 --batch 16 --epochs 50
+```
+Example configuration (data.yaml) defines paths to your datasets and class names.
+
+### 🧭 Evaluation
+```bash
+python evaluate.py --data data.yaml --weights model/nwsd-v2.pt
 ```
 
-An example configuration file `data.yaml` is provided, which specifies paths to training and validation datasets, as well as class names.
+Generates:
 
-### Evaluation
+- Binary mask
+- Overlay visualization
+- Water coverage stats
 
-```bash
-python3 evaluate.py --data data.yaml --weights model/nwsd-v2.pt
+## License
+This model is released under the **GPL-3.0 License**. See the [LICENSE](LICENSE) file for details.
+
+## Citation
+If you use this model in your work, please consider citing:
+```latex
+@misc{nwsd2025,
+  title={Water Surface Segmentation on Beach Images},
+  author={Lucas Iglesia},
+  year={2025},
+  howpublished={\url{https://huggingface.co/Ehlum-Lucas/NWSD}}
+}
 ```
 
-## Output Description
-The model generates:
-- **Binary Mask**: A black-and-white image where white pixels represent water surfaces.
-- **Overlay Visualization**: An image showing the original with the water mask overlaid in red
-- **Stats Plot**: A plot visualizing coverage, confidence, and other metrics.
-
-## Model Architecture
-
-- **Base Model**: YOLOv11n (nano)
-- **Head**: Custom segmentation decoder
-- **Input**: RGB image, 640x640
-- **Output**: Binary segmentation map (1 class: water)
-- **Format**: PyTorch `.pt` model
-
-Contributions are welcome!
