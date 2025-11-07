@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
 import numpy as np
@@ -11,7 +10,14 @@ from typing import Optional
 app = FastAPI()
 
 MODEL_PATH = "model/nwsd-v2.pt"
-model = YOLO(MODEL_PATH)
+model = None  # lazy-loaded later
+
+
+def get_model():
+    global model
+    if model is None:
+        model = YOLO(MODEL_PATH)
+    return model
 
 def preprocess_image_bytes(image_bytes: bytes) -> np.ndarray:
     np_arr = np.frombuffer(image_bytes, np.uint8)
@@ -24,7 +30,7 @@ def postprocess_results(results, original_shape):
     if len(results) == 0 or results[0].masks is None:
         return None, None
     result = results[0]
-    masks = result.masks.data.cpu().numpy()  # (N, H, W)
+    masks = result.masks.data.cpu().numpy()
     binary_mask = np.zeros(original_shape, dtype=np.uint8)
     if len(masks) > 0:
         resized_masks = [cv2.resize(mask, (original_shape[1], original_shape[0])) for mask in masks]
@@ -55,13 +61,17 @@ async def predict(
     image_bytes = await file.read()
     image = preprocess_image_bytes(image_bytes)
     original_shape = image.shape[:2]
-    # Run inference
+
+    model = get_model()
+
     results = model(image, conf=0.25, iou=0.45, verbose=False)
+
     binary_mask, masks = postprocess_results(results, original_shape)
     overlay = None
     water_percentage = None
     mask_bytes = None
     overlay_bytes = None
+
     if binary_mask is not None:
         overlay = create_overlay(image, binary_mask)
         water_percentage = calculate_water_percentage(binary_mask)
@@ -71,12 +81,15 @@ async def predict(
             _, overlay_bytes = cv2.imencode('.png', overlay)
     else:
         water_percentage = 0.0
+
     response = {
         "water_percentage": water_percentage,
         "detected": binary_mask is not None
     }
+
     if save_mask and mask_bytes is not None:
         response["mask_png_base64"] = base64.b64encode(mask_bytes).decode("utf-8")
     if save_overlay and overlay_bytes is not None:
         response["overlay_png_base64"] = base64.b64encode(overlay_bytes).decode("utf-8")
+
     return JSONResponse(content=response)
